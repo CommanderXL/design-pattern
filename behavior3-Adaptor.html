@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Behavior+Adaptor</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+  <input id="selectFile" type="file" accept="image/png" multiple="multiple"></input>
+
+  <div id="preview">
+  </div>
+  <script>
+    function setSelectFileBehavior(subjects) {
+      if (!Array.isArray(subjects)) {
+        if (subjects.length) subjects = Array.from(subjects)
+        else subjects = [subjects]
+      }
+
+      subjects.forEach(subject => {
+        subject.addEventListener('change', (evt) => {
+          let target = evt.target
+          let files = Array.from(target.files)
+          let URL = window.URL || window.webkitURL
+
+          if (typeof FileReader === 'function') {
+            files.forEach(file => {
+              let reader = new FileReader()
+              reader.readAsDataURL(file)
+              reader.onload = function (evt) {
+                let event = new CustomEvent('fileselect', {
+                  detail: {
+                    dataUrl: evt.target.result
+                  }
+                })
+                subject.dispatchEvent(event)
+              }
+            })
+          } else if (URL) {
+            files.forEach(file => {
+              let blob = URL.createObjectURL(file)
+              let event = new CustomEvent('fileselect', {
+                detail: {
+                  blob: blob
+                }
+              })
+              subject.dispatchEvent(event)
+            })
+          }
+        })
+      })
+    }
+
+    setSelectFileBehavior(selectFile)
+
+    selectFile.addEventListener('change', () => preview.innerHTML = '')
+
+    selectFile.addEventListener('fileselect', (evt) => {
+      let img = new Image()
+      img.src = evt.detail.dataUrl || evt.detail.blob
+      img.style.padding = '5px'
+      img.style.height = '150px'
+      preview.appendChild(img)
+    })
+  </script>
+</body>
+
+</html>
