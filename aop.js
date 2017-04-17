@@ -1,31 +1,48 @@
-Function.prototype.before = function (beforeFn) {
-  var _self = this
-  return function () {
-    beforeFn.apply(this, arguments)
+function Middleware () {
+  this.cache = []
+  this.options = null
+}
 
-    return _self.apply(this, arguments)
+Middleware.prototype.use = function (fn) {
+  if (typeof fn !== 'function') {
+    throw 'fn must be a function'
   }
+  this.cache.push(fn)
+  return this
 }
 
-Function.prototype.after = function (afterFn) {
-  var _self = this
-  return function () {
-    var ret = _self.apply(this, arguments)
-    afterFn.apply(this, arguments)
-
-    return ret
-  }
+Middleware.prototype.next = function () {
+  if (this.middlewares && this.middlewares.length) {
+    let ware = this.middlewares.shift()
+    ware.call(this, this.options, this.next.bind(this))
+  } 
 }
 
-function wrapParams (params) {
-  params.a = 1
+Middleware.prototype.handleRequest = function (options) {
+  this.options = options
+  this.middlewares = this.cache.map(fn => fn)
+  this.next(options)
 }
 
-function reverseGeo () {
-  console.log(arguments)
-}
+let middleware = new Middleware()
+middleware.use((options, next) => {
+  options.middleware1 = 'middleware1'
+  console.log(options)
+  next()
+})
 
-reverseGeo = reverseGeo.before(wrapParams)
+middleware.use((options, next) => {
+  options.middleware2 = 'middleware2'
+  console.log(options)
+  next()
+})
 
-reverseGeo({b: 1})
+middleware.use((options, next) => {
+  options.middleware3 = 'middleware3'
+  setTimeout(() => {
+    console.log(options)
+    next()
+  }, 1000)
+})
 
+middleware.handleRequest({middleware: 'middleware'})
