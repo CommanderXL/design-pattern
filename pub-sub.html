@@ -96,7 +96,7 @@ Tufekci 给 Facebook 提供了一些建议，包括与外部研究人员分享�
   <div id="hintbar"></div>
   <script src="https://s3.ssl.qhres.com/!67fc024a/markdown.min.js"></script>
   <script>
-    function Editor(input, preview) {
+    function Editor (input, preview) {
       this.update = function () {
         preview.innerHTML = markdown.toHTML(input.value)
       }
@@ -106,73 +106,42 @@ Tufekci 给 Facebook 提供了一些建议，包括与外部研究人员分享�
 
     new Editor(editor, preview)
 
-    // 提供 被观察者 暴露的方法，供其他的object去订阅
-    function setObserverBehavior(subjects) {
-      if (!Array.isArray(subjects)) {
-        if (subjects.length) {
-          subjects = Array.from(subjects)
-        } else {
-          subjects = [subjects]
-        }
-      }
-
-      subjects.forEach(function (subject) {
-        subject.watchBy = function (target, type) {
-          subject.addEventListener(type, monopoly(function (evt) {
-            evt.sender = subject
-            evt.receiver = target
-            target.notice && target.notice(evt)
-          }))
-        }
-      })
+    function PubSub () {
+      this.subscribers = {}
     }
 
-    setObserverBehavior(editor)
-    setObserverBehavior(preview)
-    editor.watchBy(preview, 'scroll')
-    editor.watchBy(hintbar, 'scroll')
-    preview.watchBy(editor, 'scroll')
-    preview.watchBy(hintbar, 'scroll')
-
-    // preview订阅
-    preview.notice = function (evt) {
-      const { receiver, sender } = evt
-      const scrollRange = sender.scrollHeight - sender.clientHeight
-      const p = sender.scrollTop / scrollRange
-      receiver.scrollTop = p * (receiver.scrollHeight - receiver.clientHeight)
-    }
-
-    // hintbar订阅
-    hintbar.notice = function (evt) {
-      const { receiver, sender } = evt
-      const scrollRange = sender.scrollHeight - sender.clientHeight
-      const p = sender.scrollTop / scrollRange
-      this.innerHTML = Math.round(100 * p) + '%'
-    }
-
-    editor.notice = function (evt) {
-      const { receiver, sender } = evt
-      const scrollRange = sender.scrollHeight - sender.clientHeight
-      const p = sender.scrollTop / scrollRange
-      receiver.scrollTop = p * (receiver.scrollHeight - receiver.clientHeight)
-    }
-
-    // 垄断函数
-    function monopoly (fn, duration) {
-      duration = duration || 500
-      return function () {
-        if (!monopoly.premit) {
-          monopoly.premit = fn
-        }
-        if (monopoly.premit === fn) {
-          clearTimeout(monopoly.premitTimer)
-          monopoly.premitTimer = setTimeout(function () {
-            delete monopoly.premit
-          }, duration)
-          fn.apply(this, arguments)
-        }
+    PubSub.prototype = {
+      pub: function (type, data) {
+        var subscribers = this.subscribers[type]
+        subscribers.forEach(function (sub) {
+          data.type = type
+          sub(data)
+        })
+      },
+      sub: function (type, target, fn) {
+        this.subscribers[type] = this.subscribers[type] || []
+        this.subscribers[type].push(fn.bind(target))
       }
     }
+
+    var mediator = new PubSub()
+
+    editor.addEventListener('scroll', function (evt) {
+      const target = evt.target
+      const scrollRange = target.scrollHeight - target.clientHeight
+      const p = target.scrollTop / scrollRange
+
+      mediator.pub('scroll', p)
+    })
+
+    mediator.sub('scroll', preview, function (p) {
+      this.scrollTop = p * (this.scrollHeight - this.clientHeight)
+    })
+
+    mediator.sub('scroll', hintbar, function (p) {
+      console.log(p)
+      this.innerHTML = Math.round(p * 100) + '%'
+    })
   </script>
 </body>
 
