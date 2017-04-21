@@ -1,3 +1,4 @@
+// https://rockjins.js.org/2017/02/21/debounce-function/
 // 函数防抖
 function debounce (fn, interval, immediate) {
   let timer = null
