@@ -28,3 +28,7 @@ function throttle (fn, interval) {
 window.onresize = throttle(function (e) {
   // do something
 }, 500)
+
+console.log('this is throttle file')
+
+window.throttle = throttle

@@ -1,0 +1,3 @@
+liteRequire.define(['f'], function () {
+
+})

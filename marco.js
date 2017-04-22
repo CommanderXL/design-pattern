@@ -13,3 +13,5 @@ Marco.prototype.execute = function (method) {
     cmd && cmd()
   }
 }
+
+console.log(window.throttle)
