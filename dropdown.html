@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    ul, ol {
+      list-style: none;
+    }
+    html, body {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    #app{
+      width: 300px;
+      height: 1200px;
+      border: 1px solid #e3e3e3;
+      overflow-y: auto;
+    }
+    .item-wrapper {
+      position: fixed;
+      right: 50px;
+      top: 50px;
+      width: 100px;
+    }
+    .item-li {
+      height: 24px;
+      line-height: 24px;
+    }
+    .highlight-tab {
+      position: absolute;
+      top: 0;
+      height: 24px;
+      left: 0;
+      right: 0;
+      background: #e3e3e3;
+      opacity: .3;
+      transition: all .2s ease;
+    }
+    .active {
+      color: red;
+    }
+  </style>
+  <body>
+    <div id="app">
+
+    </div>
+    <div class="item-wrapper">
+      <ul class="item-ul">
+        <li class="item-li active">item1</li>
+        <li class="item-li">item2</li>
+        <li class="item-li">item3</li>
+        <li class="item-li">item4</li>
+      </ul>
+      <div class="highlight-tab"></div>
+    </div>
+    <script>
+
+      const itemWrapper = document.querySelector('.item-wrapper')
+      const itemLi = [...document.querySelectorAll('.item-li')]
+      const hightLightTab = document.querySelector('.highlight-tab')
+
+      function setObservarBehavior (subjects) {
+        if (!Array.isArray(subjects)) {
+          if (subjects.length) subjects = Array.from(subjects)
+          else subjects = [subjects]
+        }
+
+        subjects.forEach(subject => {
+          subject.watchBy = function (target, type) {
+            subject.addEventListener(type, function (evt) {
+              evt.type = type
+              evt.receive = subject
+              target.notice && target.notice(evt)
+            })
+          }
+        })
+      }
+
+      setObservarBehavior(window)
+      
+      window.watchBy(itemWrapper, 'scroll')
+
+      itemWrapper.notice = (function () {
+        let _index = 0
+        return function (evt) {
+          const scrollTop = document.body.scrollTop
+          const index = Math.floor(scrollTop / 100)
+          if (_index !== index) _index = index
+          else return
+          itemLi.forEach(item => {
+            item.classList.remove('active')
+          })
+          itemLi[_index].classList.add('active')
+          hightLightTab.style.top = (_index * 24) + 'px'
+        }
+      })()
+    </script>
+  </body>
+</html>
