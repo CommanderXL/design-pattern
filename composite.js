@@ -1,0 +1,3 @@
+function AnimCommander(target, ...commands) {
+
+}
