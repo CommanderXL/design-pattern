@@ -32,7 +32,7 @@ class LazyLoad {
   loadScriptJs (src, cb) {
     let script = document.createElement('script')
     script.type = 'text/javascript'
-    script.async = 'async'
+    script.async = 'async'  // 脚本加载完后执行的顺序无法保证
     script.src = src
 
     script.onload = script.onreadystatechange = function () {
@@ -51,6 +51,7 @@ class LazyLoad {
     xhr.onreadystatechange = function () {
       if (xhr.readyState === 4 && xhr.status === 200) {
         const fn = new Function('', xhr.responseText)
+        let pattern = /x/
         const resolvedFn = _this._resolveFn({
           name,
           fn
