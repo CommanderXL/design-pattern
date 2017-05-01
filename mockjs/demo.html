@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <body>
+    <script src="http://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="./node_modules/mockjs/dist/mock-min.js"></script>
+    <script>
+      Mock.mock('http://localhost:9000/api/v2', {
+        b: 1
+      })
+      $(function () {
+        $.ajax({
+          method: 'POST',
+          url: 'http://localhost:9000/api/v2',
+          params: {
+            a: 1
+          },
+          success: function (data) {
+            console.log(data)
+          } 
+        })
+      })
+    </script>
+  </body>
+</html>
